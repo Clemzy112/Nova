@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#1c1b22">
+<title>Fed Browser</title>
+<style>
+/* =========================================================
+   FED BROWSER — DESIGN TOKENS
+   Firefox-inspired dark purple palette + FedMonetizeChain teal
+========================================================= */
+:root {
+  --bg:          #1c1b22;
+  --toolbar:     #2b2a33;
+  --tab-idle:    #38374a;
+  --tab-hover:   #44435a;
+  --border:      #52525e;
+  --text:        #fbfbfe;
+  --muted:       #8f8f9d;
+  --accent:      #00f5d4;
+  --accent-b:    #0096c7;
+  --accent-glow: rgba(0,245,212,.18);
+  --input:       #42414d;
+  --hover:       #3a3944;
+  --card:        #252430;
+  --card-h:      #2d2c3e;
+  --danger:      #ff4f5e;
+  --warn:        #ffbd4f;
+  --ok:          #3fe1b0;
+  --r4: 4px; --r8: 8px; --r12: 12px; --r16: 16px; --r24: 24px; --r99: 99px;
+  --shadow: 0 8px 32px rgba(0,0,0,.45);
+  --shadow-xl: 0 24px 64px rgba(0,0,0,.65);
+}
+body.lite {
+  --bg: #f0f0f4; --toolbar: #e0dfe8; --tab-idle: #d0cfd8; --tab-hover: #c8c7d0;
+  --border: #c0bfca; --text: #15141a; --muted: #5b5b66;
+  --input: #d8d7e0; --hover: #c8c7d0; --card: #fff; --card-h: #f5f5fa;
+}
+
+/* =========================================================
+   RESET + BASE
+========================================================= */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.4}
+
+/* =========================================================
+   APP SHELL
+========================================================= */
+.app{height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* =========================================================
+   CRYPTO TICKER
+========================================================= */
+.ticker{height:26px;background:var(--toolbar);border-bottom:1px solid var(--border);overflow:hidden;display:flex;align-items:center;flex-shrink:0}
+.ticker-track{display:flex;gap:28px;animation:ticker 40s linear infinite;white-space:nowrap;padding:0 20px}
+.ticker-track:hover{animation-play-state:paused}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.tc{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;letter-spacing:.3px}
+.tc-n{color:var(--muted)}
+.tc-p{color:var(--accent)}
+.tc-c{font-size:10px;font-weight:600}
+.tc-c.up{color:var(--ok)}
+.tc-c.dn{color:var(--danger)}
+
+/* =========================================================
+   CHROME / TOP
+========================================================= */
+.chrome{background:var(--toolbar);border-bottom:1px solid var(--border);flex-shrink:0}
+
+/* TABS */
+.tab-strip{display:flex;align-items:flex-end;height:38px;padding:5px 6px 0;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tab-strip::-webkit-scrollbar{display:none}
+
+.tab{
+  height:33px;min-width:140px;max-width:210px;flex:1;
+  display:flex;align-items:center;gap:6px;padding:0 9px;
+  background:var(--tab-idle);border:1px solid transparent;border-bottom:none;
+  border-radius:8px 8px 0 0;cursor:pointer;color:var(--muted);
+  transition:background .12s,color .12s;position:relative
+}
+.tab:hover:not(.on){background:var(--tab-hover);color:var(--text)}
+.tab.on{background:var(--bg);color:var(--text);border-color:var(--border)}
+.tab.pvt{border-top:2px solid var(--accent)}
+.tab-fav{width:15px;height:15px;font-size:13px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.tab-ldr{width:13px;height:13px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+.tab-ttl{flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tab-x{width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--muted);flex-shrink:0;transition:background .1s,color .1s}
+.tab-x:hover{background:rgba(255,79,94,.2);color:var(--danger)}
+.btn-plus{width:28px;height:28px;border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:2px;transition:background .1s,color .1s;align-self:center}
+.btn-plus:hover{background:var(--hover);color:var(--text)}
+
+/* TOOLBAR ROW */
+.toolbar{display:flex;align-items:center;gap:3px;padding:6px 8px 8px;height:44px}
+
+/* NAV BUTTONS */
+.tbtn{width:30px;height:30px;border:0;border-radius:50%;background:transparent;color:var(--muted);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:background .1s,color .1s;flex-shrink:0}
+.tbtn:hover{background:var(--hover);color:var(--text)}
+.tbtn:disabled{opacity:.3;cursor:not-allowed}
+.tbtn svg{pointer-events:none}
+
+/* ADDRESS BAR */
+.addr-wrap{flex:1;height:32px;background:var(--input);border:1.5px solid transparent;border-radius:8px;display:flex;align-items:center;padding:0 10px;gap:7px;transition:border-color .15s,box-shadow .15s,background .15s}
+.addr-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);background:var(--bg)}
+.sec-icon{font-size:12px;flex-shrink:0;transition:color .15s}
+.sec-icon.ok{color:var(--accent)}
+.sec-icon.warn{color:var(--warn)}
+.addr-input{flex:1;border:0;outline:0;background:transparent;color:var(--text);font-size:13px;font-family:inherit;min-width:0}
+.addr-input::placeholder{color:var(--muted)}
+.bm-btn{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:15px;padding:0;transition:color .15s;flex-shrink:0}
+.bm-btn.on{color:var(--warn)}
+.bm-btn:hover{color:var(--text)}
+
+/* HAMBURGER MENU BTN */
+.hmenu-btn{width:30px;height:30px;border:0;border-radius:6px;background:transparent;cursor:pointer;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3.5px;transition:background .1s;padding:0}
+.hmenu-btn:hover{background:var(--hover)}
+.hbar{width:16px;height:2px;background:var(--text);border-radius:2px}
+
+/* =========================================================
+   PAGE AREA
+========================================================= */
+.page{flex:1;position:relative;overflow:hidden;background:var(--bg)}
+.bframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:#fff}
+.bframe.on{display:block}
+
+/* =========================================================
+   HOME / NEW TAB
+========================================================= */
+.home{
+  position:absolute;inset:0;overflow-y:auto;
+  display:none;flex-direction:column;align-items:center;
+  padding:36px 20px 60px;gap:0;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent
+}
+.home.on{display:flex}
+
+/* LOGO + CLOCK */
+.hd-top{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:28px}
+.logo-svg{filter:drop-shadow(0 0 22px rgba(0,245,212,.3))}
+.hclock{font-size:54px;font-weight:200;letter-spacing:-3px;color:var(--text);margin-top:4px}
+.hdate{font-size:13px;color:var(--muted)}
+
+/* SEARCH BOX */
+.hsearch-wrap{width:min(640px,100%);margin-bottom:26px}
+.hsearch{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:var(--r99);padding:0 14px;height:50px;
+  transition:border-color .2s,box-shadow .2s
+}
+.hsearch:focus-within{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-glow),var(--shadow)}
+.hsearch-ico{font-size:16px;color:var(--muted);flex-shrink:0}
+.hsearch input{flex:1;border:0;outline:0;background:transparent;color:var(--text);font-size:15px;font-family:inherit}
+.hsearch input::placeholder{color:var(--muted)}
+.hsearch-go{width:34px;height:34px;border:0;border-radius:50%;background:linear-gradient(135deg,#00f5d4,#0096c7);color:#04241a;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .15s,box-shadow .15s}
+.hsearch-go:hover{transform:scale(1.1);box-shadow:0 4px 16px rgba(0,245,212,.35)}
+
+/* SHORTCUTS */
+.shortcuts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:32px;width:min(720px,100%)}
+.sc{display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 18px;background:var(--card);border:1px solid var(--border);border-radius:var(--r12);cursor:pointer;transition:background .15s,transform .15s,border-color .15s;min-width:76px}
+.sc:hover{background:var(--card-h);border-color:var(--accent);transform:translateY(-2px)}
+.sc-ico{font-size:20px}
+.sc-lbl{font-size:11px;color:var(--muted);white-space:nowrap}
+
+/* NEWS */
+.news-wrap{width:min(1080px,100%)}
+.news-hdr{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.news-eyebrow{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--accent)}
+.news-cats{display:flex;gap:5px;flex-wrap:wrap}
+.ncat{padding:4px 13px;border:1px solid var(--border);border-radius:var(--r99);background:transparent;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit}
+.ncat:hover{background:var(--hover);color:var(--text)}
+.ncat.on{background:var(--accent);border-color:var(--accent);color:#04241a}
+.news-ref{margin-left:auto;border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:16px;padding:4px;border-radius:4px;transition:color .15s,transform .3s}
+.news-ref:hover{color:var(--text)}
+.news-ref.spin{animation:spin 1s linear infinite}
+
+/* NEWS GRID */
+.ngrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+
+/* Skeleton */
+.nskel{background:var(--card);border:1px solid var(--border);border-radius:var(--r16);height:158px;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:.8}}
+
+/* Card */
+.ncard{background:var(--card);border:1px solid var(--border);border-radius:var(--r16);padding:15px;cursor:pointer;transition:background .15s,transform .15s,border-color .15s,box-shadow .15s;display:flex;flex-direction:column;gap:9px}
+.ncard:hover{background:var(--card-h);border-color:var(--accent);transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,0,0,.35)}
+.ncard.hero{grid-column:1/-1;flex-direction:row;gap:20px;padding:20px}
+.ncard.hero .ncard-ttl{font-size:18px}
+.nbadge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:var(--r99);background:rgba(0,245,212,.1);border:1px solid rgba(0,245,212,.25);color:var(--accent);font-size:10px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;width:fit-content}
+.ncard-body{flex:1;display:flex;flex-direction:column;gap:7px}
+.ncard-ttl{font-size:14px;font-weight:700;line-height:1.35;color:var(--text)}
+.ncard-sum{font-size:12px;color:var(--muted);line-height:1.55;flex:1}
+.ncard-ft{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
+.ncard-src{font-size:10px;color:var(--accent-b);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.ncard-arr{font-size:13px;color:var(--muted)}
+.news-err{padding:20px;color:var(--muted);text-align:center;font-size:13px;background:var(--card);border:1px solid var(--border);border-radius:var(--r16)}
+
+/* =========================================================
+   DROPDOWN MENU
+========================================================= */
+.drop{position:absolute;right:8px;top:82px;width:250px;background:var(--toolbar);border:1px solid var(--border);border-radius:var(--r16);padding:6px;box-shadow:var(--shadow-xl);display:none;z-index:300}
+.drop.on{display:block}
+.mitem{width:100%;border:0;background:transparent;color:var(--text);padding:9px 11px;border-radius:var(--r8);text-align:left;cursor:pointer;display:flex;gap:11px;align-items:center;font-size:13px;font-family:inherit;transition:background .1s}
+.mitem:hover{background:var(--hover)}
+.mico{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.msep{height:1px;background:var(--border);margin:5px 0}
+
+/* =========================================================
+   OVERLAY + MODAL
+========================================================= */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:800;padding:20px}
+.overlay.on{display:flex}
+.modal{width:min(540px,100%);max-height:86vh;overflow:auto;background:var(--toolbar);border:1px solid var(--border);border-radius:var(--r24);box-shadow:var(--shadow-xl);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.mhead{padding:16px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;position:sticky;top:0;background:var(--toolbar);z-index:1}
+.mhead h2{flex:1;font-size:16px;font-weight:700}
+.mcl{width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:var(--text);cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;transition:background .1s}
+.mcl:hover{background:var(--hover)}
+.mbody{padding:14px 18px 18px}
+
+/* FORM CONTROLS */
+.stg{padding:14px 0;border-bottom:1px solid var(--border)}
+.stg:last-child{border-bottom:0}
+.stg-ttl{font-weight:700;font-size:13px;margin-bottom:4px}
+.stg-desc{color:var(--muted);font-size:12px;margin-bottom:10px}
+.stg select,.stg input[type=text]{width:100%;height:36px;border:1px solid var(--border);border-radius:var(--r8);background:var(--input);color:var(--text);padding:0 11px;outline:0;font-family:inherit;font-size:13px}
+
+.btn-p{border:0;background:var(--accent);color:#04241a;font-weight:700;padding:8px 16px;border-radius:var(--r8);cursor:pointer;font-size:12px;font-family:inherit;transition:opacity .15s}
+.btn-p:hover{opacity:.85}
+.btn-d{border:1px solid rgba(255,79,94,.3);background:rgba(255,79,94,.15);color:var(--danger);padding:8px 16px;border-radius:var(--r8);cursor:pointer;font-size:12px;font-family:inherit;transition:background .15s}
+.btn-d:hover{background:rgba(255,79,94,.25)}
+
+/* LIST ITEMS */
+.llist{display:flex;flex-direction:column;gap:7px}
+.lcard{padding:11px 13px;border:1px solid var(--border);border-radius:var(--r12);background:var(--bg)}
+.lcard-ttl{font-weight:600;font-size:13px;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lcard-url{color:var(--accent-b);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lcard-tm{color:var(--muted);font-size:11px;margin-top:3px}
+.lcard-acts{margin-top:8px;display:flex;gap:7px}
+
+/* =========================================================
+   TOAST
+========================================================= */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--card);border:1px solid var(--border);color:var(--text);padding:9px 18px;border-radius:var(--r99);font-size:12px;opacity:0;pointer-events:none;transition:opacity .22s,transform .22s;z-index:2000;white-space:nowrap;box-shadow:var(--shadow)}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* =========================================================
+   UTILS
+========================================================= */
+@keyframes spin{to{transform:rotate(360deg)}}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+@media(max-width:640px){
+  .tab{min-width:120px}
+  .hclock{font-size:40px}
+  .home{padding:22px 14px 40px}
+  .ngrid{grid-template-columns:1fr}
+  .ncard.hero{flex-direction:column;grid-column:auto}
+  .shortcuts{gap:7px}
+  .sc{padding:12px 14px;min-width:68px}
+  .toolbar{padding:5px 6px 7px}
+  .tbtn{width:27px;height:27px}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ✦ CRYPTO TICKER -->
+  <div class="ticker">
+    <div class="ticker-track" id="tickerTrack">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <!-- ✦ CHROME -->
+  <div class="chrome">
+
+    <!-- TAB STRIP -->
+    <div class="tab-strip" id="tabStrip"></div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <!-- NAV -->
+      <button class="tbtn" id="btnBk" onclick="goBack()" title="Back (Alt+←)">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2L4 7l5 5"/></svg>
+      </button>
+      <button class="tbtn" id="btnFw" onclick="goFwd()" title="Forward (Alt+→)">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2l5 5-5 5"/></svg>
+      </button>
+      <button class="tbtn" id="btnRl" onclick="reload()" title="Reload (F5)">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 7A4.5 4.5 0 1 1 7 2.5a4.5 4.5 0 0 1 3.18 1.32L12 2v4H8l1.5-1.5"/></svg>
+      </button>
+
+      <!-- ADDRESS BAR -->
+      <div class="addr-wrap">
+        <span class="sec-icon ok" id="secIco">🔒</span>
+        <input id="addrInput" class="addr-input" type="text"
+          placeholder="Search Fed or enter address"
+          autocomplete="off" spellcheck="false"
+          onkeydown="addrKey(event)">
+        <button class="bm-btn" id="bmBtn" onclick="toggleBm()" title="Bookmark this page">☆</button>
+      </div>
+
+      <!-- MENU -->
+      <button class="hmenu-btn" onclick="toggleMenu()" title="Browser menu">
+        <div class="hbar"></div><div class="hbar"></div><div class="hbar"></div>
+      </button>
+    </div>
+  </div>
+
+  <!-- ✦ PAGE -->
+  <main class="page">
+
+    <!-- HOME / NEW TAB -->
+    <div class="home on" id="homePage">
+
+      <!-- LOGO + CLOCK -->
+      <div class="hd-top">
+        <svg class="logo-svg" width="200" height="54" viewBox="0 0 220 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#00f5d4"/>
+              <stop offset="100%" stop-color="#0096c7"/>
+            </linearGradient>
+          </defs>
+          <g transform="translate(5,10)">
+            <rect x="0" y="0" width="40" height="40" rx="10" fill="#0b1a2b"/>
+            <circle cx="15" cy="20" r="6" stroke="url(#lg1)" stroke-width="2"/>
+            <circle cx="25" cy="20" r="6" stroke="url(#lg1)" stroke-width="2"/>
+            <path d="M12 12 H26 M12 20 H22 M12 28 H20" stroke="#00f5d4" stroke-width="2" stroke-linecap="round"/>
+          </g>
+          <text x="55" y="30" fill="#ffffff" font-size="14" font-family="Arial, sans-serif" font-weight="600">FedMonetize</text>
+          <text x="55" y="48" fill="#00f5d4" font-size="12" font-family="Arial, sans-serif">Chain</text>
+        </svg>
+
+        <div class="hclock" id="hClock">00:00</div>
+        <div class="hdate" id="hDate">—</div>
+      </div>
+
+      <!-- SEARCH -->
+      <div class="hsearch-wrap">
+        <div class="hsearch">
+          <span class="hsearch-ico">🔍</span>
+          <input type="text" id="hSrch" placeholder="Search the web with Fed"
+            onkeydown="if(event.key==='Enter')doHSearch()">
+          <button class="hsearch-go" onclick="doHSearch()">→</button>
+        </div>
+      </div>
+
+      <!-- SHORTCUTS -->
+      <div class="shortcuts">
+        <div class="sc" onclick="nav('https://www.google.com')"><span class="sc-ico">🔍</span><span class="sc-lbl">Google</span></div>
+        <div class="sc" onclick="nav('https://www.youtube.com')"><span class="sc-ico">▶️</span><span class="sc-lbl">YouTube</span></div>
+        <div class="sc" onclick="nav('https://coinmarketcap.com')"><span class="sc-ico">💰</span><span class="sc-lbl">CoinMarketCap</span></div>
+        <div class="sc" onclick="nav('https://www.binance.com')"><span class="sc-ico">📈</span><span class="sc-lbl">Binance</span></div>
+        <div class="sc" onclick="nav('https://www.reddit.com/r/cryptocurrency')"><span class="sc-ico">🌐</span><span class="sc-lbl">r/Crypto</span></div>
+        <div class="sc" onclick="nav('https://github.com')"><span class="sc-ico">💻</span><span class="sc-lbl">GitHub</span></div>
+        <div class="sc" onclick="openBmModal()"><span class="sc-ico">⭐</span><span class="sc-lbl">Bookmarks</span></div>
+        <div class="sc" onclick="openHistModal()"><span class="sc-ico">🕘</span><span class="sc-lbl">History</span></div>
+      </div>
+
+      <!-- LIVE NEWS -->
+      <div class="news-wrap">
+        <div class="news-hdr">
+          <span class="news-eyebrow">📰 Live News</span>
+          <div class="news-cats">
+            <button class="ncat on" data-q="top headlines today 2026" onclick="setNcat(this)">All</button>
+            <button class="ncat" data-q="cryptocurrency bitcoin blockchain news 2026" onclick="setNcat(this)">Crypto</button>
+            <button class="ncat" data-q="technology AI latest news 2026" onclick="setNcat(this)">Tech</button>
+            <button class="ncat" data-q="finance economy stock market 2026" onclick="setNcat(this)">Finance</button>
+            <button class="ncat" data-q="world politics breaking news 2026" onclick="setNcat(this)">World</button>
+            <button class="ncat" data-q="sports major events results 2026" onclick="setNcat(this)">Sports</button>
+          </div>
+          <button class="news-ref" id="newsRefBtn" onclick="fetchNews()" title="Refresh news">↻</button>
+        </div>
+        <div class="ngrid" id="nGrid">
+          <div class="nskel"></div>
+          <div class="nskel"></div>
+          <div class="nskel"></div>
+          <div class="nskel"></div>
+        </div>
+      </div>
+
+    </div><!-- /home -->
+
+    <!-- IFRAME -->
+    <iframe id="bFrame" class="bframe"
+      sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"></iframe>
+
+    <!-- DROPDOWN MENU -->
+    <div class="drop" id="dropMenu">
+      <button class="mitem" onclick="newTab();closeMenu()"><span class="mico">➕</span>New Tab</button>
+      <button class="mitem" onclick="newPvtTab();closeMenu()"><span class="mico">🕶️</span>New Private Tab</button>
+      <div class="msep"></div>
+      <button class="mitem" onclick="openBmModal();closeMenu()"><span class="mico">⭐</span>Bookmarks</button>
+      <button class="mitem" onclick="openHistModal();closeMenu()"><span class="mico">🕘</span>History</button>
+      <div class="msep"></div>
+      <button class="mitem" onclick="openSettings();closeMenu()"><span class="mico">⚙️</span>Settings</button>
+      <button class="mitem" onclick="openAbout();closeMenu()"><span class="mico">ℹ️</span>About Fed</button>
+    </div>
+
+  </main>
+</div><!-- /app -->
+
+<!-- OVERLAY / MODAL -->
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="mhead">
+      <h2 id="mTitle">—</h2>
+      <button class="mcl" onclick="closeModal()">×</button>
+    </div>
+    <div class="mbody" id="mBody"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- =========================================================
+     FED BROWSER — JAVASCRIPT
+========================================================= -->
+<script>
+'use strict';
+
+/* ── STATE ─────────────────────────────────────────────── */
+let TABS = [], ACTIVE = null;
+let BM   = JSON.parse(localStorage.getItem('fed_bm')   || '[]');
+let HIST = JSON.parse(localStorage.getItem('fed_h')    || '[]');
+let SETT = JSON.parse(localStorage.getItem('fed_s')    || 'null') || {
+  theme: 'dark',
+  engine: 'https://www.google.com/search?q='
+};
+let NEWS_Q    = 'top headlines today 2026';
+let newsLock  = false;
+let toastTmr  = null;
+
+/* ─── STATIC CRYPTO PRICES (updated live below) ──────── */
+const COINS_STATIC = [
+  {n:'BTC',p:'$67,241',c:'+2.14%',up:true},
+  {n:'ETH',p:'$3,512',c:'+1.87%',up:true},
+  {n:'BNB',p:'$592',c:'-0.43%',up:false},
+  {n:'SOL',p:'$172',c:'+3.21%',up:true},
+  {n:'TRX',p:'$0.1241',c:'+0.78%',up:true},
+  {n:'USDT',p:'$1.00',c:'+0.01%',up:true},
+  {n:'LTC',p:'$91.40',c:'-0.66%',up:false},
+  {n:'SHIB',p:'$0.00002481',c:'+4.12%',up:true},
+  {n:'USDC',p:'$1.00',c:'+0.00%',up:true},
+];
+
+/* ── INIT ───────────────────────────────────────────────── */
+function init() {
+  applyTheme();
+  tickClock();
+  setInterval(tickClock, 1000);
+  buildTicker(COINS_STATIC);
+  fetchCryptoPrices();
+  newTab();
+  fetchNews();
+  // Click outside menu
+  document.addEventListener('click', e => {
+    const dm = document.getElementById('dropMenu');
+    if (dm.classList.contains('on') && !dm.contains(e.target) && !e.target.closest('.hmenu-btn')) closeMenu();
+  });
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeModal(); closeMenu(); }
+    if ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='t') { e.preventDefault(); newTab(); }
+    if ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='w') { e.preventDefault(); closeActive(); }
+    if ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='l') {
+      e.preventDefault();
+      const a = document.getElementById('addrInput');
+      a.focus(); a.select();
+    }
+    if (e.key === 'F5') { e.preventDefault(); reload(); }
+  });
+  // iframe load
+  document.getElementById('bFrame').addEventListener('load', () => {
+    const t = getActive();
+    if (!t) return;
+    t.loading = false;
+    try {
+      const ti = document.getElementById('bFrame').contentDocument.title;
+      if (ti) t.title = ti;
+    } catch {}
+    renderTabs();
+    syncBmBtn();
+  });
+}
+window.onload = init;
+
+/* ── CLOCK ──────────────────────────────────────────────── */
+function tickClock() {
+  const n = new Date();
+  const hh = String(n.getHours()).padStart(2,'0');
+  const mm = String(n.getMinutes()).padStart(2,'0');
+  document.getElementById('hClock').textContent = `${hh}:${mm}`;
+  document.getElementById('hDate').textContent  = n.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+}
+
+/* ── CRYPTO TICKER ──────────────────────────────────────── */
+function buildTicker(coins) {
+  const t = document.getElementById('tickerTrack');
+  const html = coins.map(c=>`
+    <span class="tc">
+      <span class="tc-n">${c.n}</span>
+      <span class="tc-p">${c.p}</span>
+      <span class="tc-c ${c.up?'up':'dn'}">${c.c}</span>
+    </span>`).join('');
+  t.innerHTML = html + html; // Duplicate for seamless loop
+}
+
+async function fetchCryptoPrices() {
+  try {
+    const ids = 'bitcoin,ethereum,binancecoin,solana,tron,tether,litecoin,shiba-inu,usd-coin';
+    const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`);
+    if (!r.ok) return;
+    const d = await r.json();
+    const map = {
+      bitcoin:'BTC',ethereum:'ETH',binancecoin:'BNB',solana:'SOL',
+      tron:'TRX',tether:'USDT',litecoin:'LTC','shiba-inu':'SHIB','usd-coin':'USDC'
+    };
+    const decimals = {BTC:0,ETH:0,BNB:1,SOL:1,TRX:4,USDT:2,LTC:2,SHIB:8,USDC:2};
+    const live = Object.entries(d).map(([id,v])=>{
+      const n = map[id]||id.toUpperCase();
+      const p = v.usd;
+      const ch = v.usd_24h_change||0;
+      const dec = decimals[n]||2;
+      const pStr = p < 0.01 ? `$${p.toFixed(8)}` : `$${p.toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec})}`;
+      const cStr = (ch>=0?'+':'')+ch.toFixed(2)+'%';
+      return {n,p:pStr,c:cStr,up:ch>=0};
+    });
+    if (live.length > 0) buildTicker(live);
+  } catch {}
+}
+
+/* ── TABS ───────────────────────────────────────────────── */
+function newTab(url='') {
+  const t = { id: Date.now()+Math.random(), title:'New Tab', url:'', private:false, hist:[], hi:-1, loading:false };
+  TABS.push(t); ACTIVE = t.id;
+  renderTabs(); showHome();
+  if (url) nav(url);
+}
+
+function newPvtTab() {
+  const t = { id: Date.now()+Math.random(), title:'Private', url:'', private:true, hist:[], hi:-1, loading:false };
+  TABS.push(t); ACTIVE = t.id;
+  renderTabs(); showHome();
+  toast('Private tab — activity won\'t be saved locally');
+}
+
+function closeTab(id, e) {
+  if (e) e.stopPropagation();
+  const idx = TABS.findIndex(t=>t.id===id);
+  if (idx===-1) return;
+  TABS.splice(idx,1);
+  if (TABS.length===0) { newTab(); return; }
+  if (ACTIVE===id) { ACTIVE=TABS[Math.max(0,idx-1)].id; loadActive(); }
+  renderTabs();
+}
+
+function closeActive() { const t=getActive(); if(t) closeTab(t.id); }
+
+function selTab(id) { ACTIVE=id; loadActive(); renderTabs(); }
+
+function getActive() { return TABS.find(t=>t.id===ACTIVE); }
+
+function loadActive() {
+  const t = getActive();
+  if (!t) return;
+  document.getElementById('addrInput').value = t.url||'';
+  t.url ? loadURL(t.url) : showHome();
+  syncBmBtn();
+}
+
+function renderTabs() {
+  const strip = document.getElementById('tabStrip');
+  strip.innerHTML = '';
+  TABS.forEach(t => {
+    const el = document.createElement('div');
+    el.className = `tab${t.id===ACTIVE?' on':''}${t.private?' pvt':''}`;
+    el.onclick = ()=>selTab(t.id);
+
+    const fav = document.createElement('div');
+    fav.className = 'tab-fav';
+    if (t.loading) {
+      const sp = document.createElement('div');
+      sp.className = 'tab-ldr';
+      fav.appendChild(sp);
+    } else { fav.textContent = t.private?'🕶️':'🌐'; }
+
+    const ttl = document.createElement('div');
+    ttl.className = 'tab-ttl';
+    ttl.textContent = t.title||'New Tab';
+
+    const x = document.createElement('div');
+    x.className = 'tab-x';
+    x.innerHTML = '&times;';
+    x.onclick = e=>closeTab(t.id,e);
+
+    el.append(fav,ttl,x);
+    strip.appendChild(el);
+  });
+  const plus = document.createElement('button');
+  plus.className = 'btn-plus'; plus.textContent='+'; plus.title='New Tab (Ctrl+T)';
+  plus.onclick = ()=>newTab();
+  strip.appendChild(plus);
+}
+
+/* ── NAVIGATION ─────────────────────────────────────────── */
+function addrKey(e) {
+  if (e.key==='Enter') {
+    const v = document.getElementById('addrInput').value.trim();
+    if (v) nav(v);
+  }
+}
+
+function normURL(v) {
+  if (/^https?:\/\//.test(v)) return v;
+  if (/^[a-z0-9\-]+(\.[a-z]{2,})(\/|$)/i.test(v) && !v.includes(' ')) return 'https://'+v;
+  return SETT.engine + encodeURIComponent(v);
+}
+
+function nav(v) {
+  const url = normURL(v);
+  const t = getActive();
+  if (!t) return;
+  t.url = url; t.title = domain(url)||'Loading…'; t.loading = true;
+  if (t.hi < t.hist.length-1) t.hist = t.hist.slice(0,t.hi+1);
+  t.hist.push(url); t.hi = t.hist.length-1;
+  if (!t.private) pushHist(t);
+  document.getElementById('addrInput').value = url;
+  renderTabs(); loadURL(url); syncBmBtn();
+}
+
+function domain(url) {
+  try { return new URL(url).hostname; } catch { return ''; }
+}
+
+function loadURL(url) {
+  document.getElementById('homePage').classList.remove('on');
+  const f = document.getElementById('bFrame');
+  f.classList.add('on'); f.src = url;
+  const s = document.getElementById('secIco');
+  const ok = url.startsWith('https://');
+  s.textContent = ok?'🔒':'⚠️';
+  s.className = 'sec-icon '+(ok?'ok':'warn');
+  setTimeout(()=>{ const t=getActive(); if(t){t.loading=false;renderTabs();} },2200);
+}
+
+function showHome() {
+  const f = document.getElementById('bFrame');
+  f.classList.remove('on'); f.src='about:blank';
+  document.getElementById('homePage').classList.add('on');
+  document.getElementById('addrInput').value='';
+  const s=document.getElementById('secIco');
+  s.textContent='🔒'; s.className='sec-icon ok';
+}
+
+function goBack() {
+  const t=getActive(); if(!t||t.hi<=0) return;
+  t.hi--; t.url=t.hist[t.hi];
+  document.getElementById('addrInput').value=t.url;
+  loadURL(t.url);
+}
+
+function goFwd() {
+  const t=getActive(); if(!t||t.hi>=t.hist.length-1) return;
+  t.hi++; t.url=t.hist[t.hi];
+  document.getElementById('addrInput').value=t.url;
+  loadURL(t.url);
+}
+
+function reload() {
+  const f=document.getElementById('bFrame');
+  if (f.classList.contains('on')) { try{f.contentWindow.location.reload();}catch{f.src=f.src;} }
+  else showHome();
+}
+
+/* ── HOME SEARCH ─────────────────────────────────────────── */
+function doHSearch() {
+  const v=document.getElementById('hSrch').value.trim();
+  if(v) nav(v);
+}
+
+/* ── LIVE NEWS (Anthropic API + Web Search) ──────────────── */
+async function fetchNews() {
+  if (newsLock) return;
+  newsLock = true;
+  const grid = document.getElementById('nGrid');
+  const btn  = document.getElementById('newsRefBtn');
+  btn.classList.add('spin');
+  grid.innerHTML = '<div class="nskel"></div><div class="nskel"></div><div class="nskel"></div><div class="nskel"></div>';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1200,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{
+          role: 'user',
+          content: `Search for the 7 most recent, important news stories about: ${NEWS_Q}
+Return ONLY a valid JSON array — no markdown, no extra text.
+Format exactly: [{"title":"...","summary":"1–2 sentences max","source":"Publisher name","url":"https://...","category":"e.g. Crypto/Tech/Finance/World"}]
+All URLs must start with https://.`
+        }]
+      })
+    });
+
+    const data = await res.json();
+    const raw  = (data.content||[]).map(b=>b.type==='text'?b.text:'').join('');
+    let articles;
+    try { articles = JSON.parse(raw.replace(/```json|```/g,'').trim()); }
+    catch { const m=raw.match(/\[[\s\S]*\]/); articles=m?JSON.parse(m[0]):[]; }
+
+    if (!Array.isArray(articles)||articles.length===0) throw new Error('empty');
+    renderNews(articles);
+
+  } catch(err) {
+    grid.innerHTML = `<div class="news-err">⚠️ Could not load live news — check your connection or try refreshing.</div>`;
+  }
+
+  newsLock = false;
+  btn.classList.remove('spin');
+}
+
+function renderNews(articles) {
+  const grid = document.getElementById('nGrid');
+  grid.innerHTML = '';
+  articles.forEach((a,i) => {
+    const card = document.createElement('div');
+    card.className = i===0 ? 'ncard hero' : 'ncard';
+    card.onclick = () => { if(a.url&&a.url!=='#') nav(a.url); };
+    card.innerHTML = `
+      <div>
+        <div class="nbadge">📌 ${esc(a.category||'News')}</div>
+      </div>
+      <div class="ncard-body">
+        <div class="ncard-ttl">${esc(a.title)}</div>
+        <div class="ncard-sum">${esc(a.summary)}</div>
+        <div class="ncard-ft">
+          <span class="ncard-src">${esc(a.source||'')}</span>
+          <span class="ncard-arr">→</span>
+        </div>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function setNcat(btn) {
+  document.querySelectorAll('.ncat').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  NEWS_Q = btn.dataset.q;
+  fetchNews();
+}
+
+/* ── BOOKMARKS ───────────────────────────────────────────── */
+function toggleBm() {
+  const t=getActive();
+  if(!t||!t.url){toast('Nothing to bookmark');return;}
+  const idx = BM.findIndex(b=>b.url===t.url);
+  if (idx>=0) { BM.splice(idx,1); toast('Bookmark removed'); }
+  else { BM.unshift({title:t.title,url:t.url}); toast('Bookmarked ⭐'); }
+  localStorage.setItem('fed_bm',JSON.stringify(BM));
+  syncBmBtn();
+}
+
+function syncBmBtn() {
+  const t=getActive();
+  const btn=document.getElementById('bmBtn');
+  const on = t&&BM.some(b=>b.url===t.url);
+  btn.textContent = on?'★':'☆';
+  btn.classList.toggle('on',on);
+}
+
+function openBmModal() {
+  setModal('⭐ Bookmarks');
+  const body=document.getElementById('mBody');
+  if(!BM.length){
+    body.innerHTML='<p style="color:var(--muted);padding:12px 0">No bookmarks yet. Click ☆ in the address bar while on any page.</p>';
+  } else {
+    body.innerHTML=`<div class="llist">${BM.map((b,i)=>`
+      <div class="lcard">
+        <div class="lcard-ttl" style="cursor:pointer" onclick="nav('${escA(b.url)}');closeModal()">⭐ ${esc(b.title)}</div>
+        <div class="lcard-url">${esc(b.url)}</div>
+        <div class="lcard-acts">
+          <button class="btn-p" onclick="nav('${escA(b.url)}');closeModal()">Open</button>
+          <button class="btn-d" onclick="rmBm(${i})">Remove</button>
+        </div>
+      </div>`).join('')}</div>`;
+  }
+  openModal();
+}
+
+function rmBm(i) { BM.splice(i,1); localStorage.setItem('fed_bm',JSON.stringify(BM)); syncBmBtn(); openBmModal(); }
+
+/* ── HISTORY ─────────────────────────────────────────────── */
+function pushHist(t) {
+  if(!t.url) return;
+  HIST.unshift({title:t.title,url:t.url,time:new Date().toISOString()});
+  HIST=HIST.slice(0,300);
+  localStorage.setItem('fed_h',JSON.stringify(HIST));
+}
+
+function openHistModal() {
+  setModal('🕘 History');
+  const body=document.getElementById('mBody');
+  if(!HIST.length){
+    body.innerHTML='<p style="color:var(--muted);padding:12px 0">No browsing history yet.</p>';
+  } else {
+    body.innerHTML=`
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+        <button class="btn-d" onclick="clearHist()">Clear History</button>
+      </div>
+      <div class="llist">${HIST.slice(0,60).map(h=>`
+        <div class="lcard" style="cursor:pointer" onclick="nav('${escA(h.url)}');closeModal()">
+          <div class="lcard-ttl">${esc(h.title)}</div>
+          <div class="lcard-url">${esc(h.url)}</div>
+          <div class="lcard-tm">${new Date(h.time).toLocaleString()}</div>
+        </div>`).join('')}</div>`;
+  }
+  openModal();
+}
+
+function clearHist() { HIST=[]; localStorage.removeItem('fed_h'); closeModal(); toast('History cleared'); }
+
+/* ── SETTINGS ────────────────────────────────────────────── */
+function openSettings() {
+  setModal('⚙️ Settings');
+  document.getElementById('mBody').innerHTML=`
+    <div class="stg">
+      <div class="stg-ttl">Appearance</div>
+      <div class="stg-desc">Choose the Fed Browser theme</div>
+      <select onchange="setTheme(this.value)">
+        <option value="dark" ${SETT.theme==='dark'?'selected':''}>Dark (Firefox Default)</option>
+        <option value="light" ${SETT.theme==='light'?'selected':''}>Light</option>
+      </select>
+    </div>
+    <div class="stg">
+      <div class="stg-ttl">Default Search Engine</div>
+      <div class="stg-desc">Used when you type in the address bar or home search</div>
+      <select onchange="setEngine(this.value)">
+        <option value="https://www.google.com/search?q=" ${SETT.engine.includes('google')?'selected':''}>Google</option>
+        <option value="https://www.bing.com/search?q=" ${SETT.engine.includes('bing')?'selected':''}>Bing</option>
+        <option value="https://duckduckgo.com/?q=" ${SETT.engine.includes('duck')?'selected':''}>DuckDuckGo</option>
+        <option value="https://search.brave.com/search?q=" ${SETT.engine.includes('brave')?'selected':''}>Brave Search</option>
+      </select>
+    </div>
+    <div class="stg">
+      <div class="stg-ttl">Privacy</div>
+      <div class="stg-desc">Delete all locally stored browser data (bookmarks, history, settings)</div>
+      <button class="btn-d" onclick="clearAll()">Clear All Browser Data</button>
+    </div>`;
+  openModal();
+}
+
+function setTheme(v) { SETT.theme=v; saveSett(); applyTheme(); toast(`Theme: ${v}`); }
+function setEngine(v) { SETT.engine=v; saveSett(); toast('Search engine updated'); }
+function saveSett() { localStorage.setItem('fed_s',JSON.stringify(SETT)); }
+function applyTheme() { document.body.classList.toggle('lite',SETT.theme==='light'); }
+function clearAll() {
+  localStorage.removeItem('fed_bm'); localStorage.removeItem('fed_h');
+  BM=[]; HIST=[]; syncBmBtn(); closeModal(); toast('All data cleared');
+}
+
+/* ── ABOUT ───────────────────────────────────────────────── */
+function openAbout() {
+  setModal('About Fed Browser');
+  document.getElementById('mBody').innerHTML=`
+    <div style="text-align:center;padding:16px 0">
+      <svg width="180" height="50" viewBox="0 0 220 60" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 20px rgba(0,245,212,.35))">
+        <defs><linearGradient id="lg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#00f5d4"/><stop offset="100%" stop-color="#0096c7"/></linearGradient></defs>
+        <g transform="translate(5,10)"><rect x="0" y="0" width="40" height="40" rx="10" fill="#0b1a2b"/><circle cx="15" cy="20" r="6" stroke="url(#lg2)" stroke-width="2"/><circle cx="25" cy="20" r="6" stroke="url(#lg2)" stroke-width="2"/><path d="M12 12 H26 M12 20 H22 M12 28 H20" stroke="#00f5d4" stroke-width="2" stroke-linecap="round"/></g>
+        <text x="55" y="30" fill="#fff" font-size="14" font-weight="600" font-family="Arial">FedMonetize</text>
+        <text x="55" y="48" fill="#00f5d4" font-size="12" font-family="Arial">Chain</text>
+      </svg>
+      <h2 style="margin-top:14px;font-size:22px;font-weight:300;letter-spacing:-1px">Fed Browser</h2>
+      <p style="color:var(--accent);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-top:4px">Powered by FedMonetizeChain</p>
+      <p style="color:var(--muted);margin-top:18px;line-height:1.7;font-size:13px;max-width:380px;margin-left:auto;margin-right:auto">
+        Fed brings together fast web browsing, AI-powered live news, and real-time crypto price tracking in one unified experience built for the decentralized web.
+      </p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px">
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 18px;font-size:12px;text-align:center">
+          <div style="color:var(--accent);font-weight:800;font-size:15px">v2.0</div><div style="color:var(--muted);margin-top:2px">Version</div>
+        </div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 18px;font-size:12px;text-align:center">
+          <div style="color:var(--accent);font-weight:800;font-size:15px">AI News</div><div style="color:var(--muted);margin-top:2px">Live Engine</div>
+        </div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 18px;font-size:12px;text-align:center">
+          <div style="color:var(--accent);font-weight:800;font-size:15px">PWA</div><div style="color:var(--muted);margin-top:2px">Installable</div>
+        </div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 18px;font-size:12px;text-align:center">
+          <div style="color:var(--accent);font-weight:800;font-size:15px">🔒 Private</div><div style="color:var(--muted);margin-top:2px">Tab Support</div>
+        </div>
+      </div>
+      <p style="color:var(--muted);font-size:11px;margin-top:20px">© 2026 FedMonetizeChain. Built with 💚</p>
+    </div>`;
+  openModal();
+}
+
+/* ── MODAL HELPERS ───────────────────────────────────────── */
+function setModal(title) { document.getElementById('mTitle').textContent=title; }
+function openModal() { document.getElementById('overlay').classList.add('on'); }
+function closeModal() { document.getElementById('overlay').classList.remove('on'); }
+
+/* ── MENU ────────────────────────────────────────────────── */
+function toggleMenu() { document.getElementById('dropMenu').classList.toggle('on'); }
+function closeMenu() { document.getElementById('dropMenu').classList.remove('on'); }
+
+/* ── TOAST ───────────────────────────────────────────────── */
+function toast(msg) {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('on');
+  clearTimeout(toastTmr);
+  toastTmr=setTimeout(()=>el.classList.remove('on'),2800);
+}
+
+/* ── SECURITY UTILS ──────────────────────────────────────── */
+function esc(v){
+  return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+function escA(v){ return String(v||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+
+</script>
+</body>
+</html>

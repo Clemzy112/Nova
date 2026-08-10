@@ -1,0 +1,2038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0b1220">
+
+<title>Nova Browser</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+:root{
+    --bg:#0b1220;
+    --panel:#111a2b;
+    --panel2:#172238;
+    --border:#26344d;
+    --text:#f5f7fb;
+    --muted:#91a0b8;
+    --accent:#36d399;
+    --accent2:#20b981;
+    --danger:#ef4444;
+    --input:#0a111d;
+    --hover:#1e2b42;
+}
+
+body.light{
+    --bg:#f5f7fb;
+    --panel:#ffffff;
+    --panel2:#edf1f7;
+    --border:#d6dce7;
+    --text:#111827;
+    --muted:#64748b;
+    --accent:#10b981;
+    --accent2:#059669;
+    --input:#f1f5f9;
+    --hover:#e5eaf2;
+}
+
+html,body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    font-family:Arial,Helvetica,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+}
+
+/* APP */
+
+.browser{
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+}
+
+/* TOP */
+
+.top{
+    background:var(--panel);
+    border-bottom:1px solid var(--border);
+}
+
+/* TABS */
+
+.tabs{
+    height:44px;
+    display:flex;
+    align-items:flex-end;
+    gap:4px;
+    padding:5px 8px 0;
+    overflow-x:auto;
+}
+
+.tabs::-webkit-scrollbar{
+    height:0;
+}
+
+.tab{
+    height:39px;
+    min-width:170px;
+    max-width:230px;
+    padding:0 10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:var(--panel2);
+    border-radius:10px 10px 0 0;
+    cursor:pointer;
+    color:var(--muted);
+    user-select:none;
+}
+
+.tab.active{
+    background:var(--bg);
+    color:var(--text);
+}
+
+.tab-icon{
+    width:18px;
+    height:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.tab-title{
+    flex:1;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:13px;
+}
+
+.tab-close{
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:15px;
+}
+
+.tab-close:hover{
+    background:var(--hover);
+}
+
+.new-tab{
+    width:35px;
+    height:35px;
+    border:0;
+    background:transparent;
+    color:var(--text);
+    font-size:22px;
+    cursor:pointer;
+    border-radius:8px;
+}
+
+.new-tab:hover{
+    background:var(--hover);
+}
+
+/* TOOLBAR */
+
+.toolbar{
+    min-height:54px;
+    display:flex;
+    align-items:center;
+    gap:5px;
+    padding:7px 10px;
+}
+
+.nav-buttons{
+    display:flex;
+    gap:2px;
+}
+
+.tool-btn{
+    width:38px;
+    height:38px;
+    border:0;
+    border-radius:50%;
+    background:transparent;
+    color:var(--text);
+    cursor:pointer;
+    font-size:18px;
+}
+
+.tool-btn:hover{
+    background:var(--hover);
+}
+
+.address-area{
+    flex:1;
+    height:40px;
+    background:var(--input);
+    border:1px solid var(--border);
+    border-radius:22px;
+    display:flex;
+    align-items:center;
+    padding:0 10px;
+    gap:8px;
+}
+
+.security{
+    font-size:14px;
+    color:var(--accent);
+}
+
+.address{
+    flex:1;
+    border:0;
+    outline:0;
+    background:transparent;
+    color:var(--text);
+    font-size:14px;
+    min-width:50px;
+}
+
+.address::placeholder{
+    color:var(--muted);
+}
+
+.star{
+    border:0;
+    background:transparent;
+    color:var(--muted);
+    cursor:pointer;
+    font-size:18px;
+}
+
+.star.active{
+    color:#fbbf24;
+}
+
+.menu-button{
+    width:38px;
+    height:38px;
+    border:0;
+    border-radius:50%;
+    background:transparent;
+    color:var(--text);
+    font-size:21px;
+    cursor:pointer;
+}
+
+.menu-button:hover{
+    background:var(--hover);
+}
+
+/* PAGE */
+
+.page{
+    flex:1;
+    position:relative;
+    background:var(--bg);
+    overflow:hidden;
+}
+
+.browser-frame{
+    width:100%;
+    height:100%;
+    border:0;
+    display:none;
+    background:white;
+}
+
+.browser-frame.active{
+    display:block;
+}
+
+/* HOME */
+
+.home{
+    width:100%;
+    height:100%;
+    overflow:auto;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:70px 20px;
+}
+
+.logo{
+    width:80px;
+    height:80px;
+    border-radius:24px;
+    background:linear-gradient(135deg,#36d399,#087f5b);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:40px;
+    box-shadow:0 15px 45px rgba(16,185,129,.25);
+}
+
+.home h1{
+    margin-top:22px;
+    font-size:30px;
+}
+
+.home p{
+    color:var(--muted);
+    margin-top:8px;
+}
+
+.home-search{
+    margin-top:30px;
+    width:min(700px,100%);
+    height:54px;
+    border:1px solid var(--border);
+    background:var(--input);
+    border-radius:28px;
+    display:flex;
+    align-items:center;
+    padding:0 18px;
+    gap:10px;
+}
+
+.home-search input{
+    flex:1;
+    border:0;
+    outline:0;
+    background:transparent;
+    color:var(--text);
+    font-size:16px;
+}
+
+.home-search button{
+    border:0;
+    background:var(--accent);
+    color:#06261a;
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    cursor:pointer;
+    font-size:18px;
+    font-weight:bold;
+}
+
+.shortcuts{
+    margin-top:35px;
+    width:min(760px,100%);
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+    gap:14px;
+}
+
+.shortcut{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:18px;
+    text-align:center;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.shortcut:hover{
+    transform:translateY(-2px);
+    background:var(--hover);
+}
+
+.shortcut-icon{
+    font-size:25px;
+}
+
+.shortcut-name{
+    margin-top:9px;
+    font-size:13px;
+}
+
+/* MENU */
+
+.menu{
+    position:absolute;
+    right:10px;
+    top:96px;
+    width:270px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:8px;
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+    display:none;
+    z-index:100;
+}
+
+.menu.show{
+    display:block;
+}
+
+.menu-item{
+    width:100%;
+    border:0;
+    background:transparent;
+    color:var(--text);
+    padding:12px;
+    border-radius:9px;
+    text-align:left;
+    cursor:pointer;
+    display:flex;
+    gap:12px;
+    align-items:center;
+    font-size:14px;
+}
+
+.menu-item:hover{
+    background:var(--hover);
+}
+
+.menu-separator{
+    height:1px;
+    background:var(--border);
+    margin:7px 0;
+}
+
+/* OVERLAY */
+
+.overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:500;
+    padding:20px;
+}
+
+.overlay.show{
+    display:flex;
+}
+
+.modal{
+    width:min(600px,100%);
+    max-height:90vh;
+    overflow:auto;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:18px;
+    box-shadow:0 30px 80px rgba(0,0,0,.5);
+}
+
+.modal-header{
+    padding:18px 20px;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:center;
+}
+
+.modal-header h2{
+    flex:1;
+    font-size:19px;
+}
+
+.modal-close{
+    width:34px;
+    height:34px;
+    border:0;
+    border-radius:50%;
+    background:transparent;
+    color:var(--text);
+    cursor:pointer;
+    font-size:20px;
+}
+
+.modal-close:hover{
+    background:var(--hover);
+}
+
+.modal-body{
+    padding:20px;
+}
+
+.setting{
+    padding:16px 0;
+    border-bottom:1px solid var(--border);
+}
+
+.setting:last-child{
+    border-bottom:0;
+}
+
+.setting-title{
+    font-weight:bold;
+}
+
+.setting-desc{
+    color:var(--muted);
+    font-size:13px;
+    margin-top:5px;
+}
+
+.setting-control{
+    margin-top:12px;
+}
+
+select,
+.modal-input{
+    width:100%;
+    height:42px;
+    border:1px solid var(--border);
+    border-radius:9px;
+    background:var(--input);
+    color:var(--text);
+    padding:0 12px;
+    outline:0;
+}
+
+.primary{
+    border:0;
+    background:var(--accent);
+    color:#05261a;
+    font-weight:bold;
+    padding:11px 16px;
+    border-radius:9px;
+    cursor:pointer;
+}
+
+.danger{
+    border:0;
+    background:#7f1d1d;
+    color:#fff;
+    padding:11px 16px;
+    border-radius:9px;
+    cursor:pointer;
+}
+
+/* LISTS */
+
+.list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.list-item{
+    padding:13px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:var(--input);
+}
+
+.list-title{
+    font-weight:bold;
+}
+
+.list-meta{
+    color:var(--muted);
+    font-size:12px;
+    margin-top:5px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+/* STATUS */
+
+.status{
+    position:fixed;
+    left:50%;
+    bottom:25px;
+    transform:translateX(-50%) translateY(20px);
+    background:#111827;
+    color:#fff;
+    padding:11px 18px;
+    border-radius:20px;
+    opacity:0;
+    pointer-events:none;
+    transition:.25s;
+    z-index:1000;
+    font-size:13px;
+}
+
+.status.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+}
+
+/* MOBILE */
+
+@media(max-width:650px){
+
+    .tab{
+        min-width:145px;
+    }
+
+    .toolbar{
+        gap:2px;
+        padding:6px;
+    }
+
+    .tool-btn{
+        width:34px;
+        height:34px;
+    }
+
+    .nav-buttons .tool-btn:nth-child(1),
+    .nav-buttons .tool-btn:nth-child(2){
+        display:none;
+    }
+
+    .home{
+        padding-top:50px;
+    }
+
+    .home h1{
+        font-size:25px;
+    }
+
+    .shortcuts{
+        grid-template-columns:repeat(3,1fr);
+    }
+
+}
+</style>
+</head>
+
+<body>
+
+<div class="browser">
+
+    <!-- TOP BROWSER AREA -->
+    <div class="top">
+
+        <!-- TABS -->
+        <div class="tabs" id="tabs"></div>
+
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+
+            <div class="nav-buttons">
+                <button class="tool-btn" onclick="goBack()" title="Back">←</button>
+                <button class="tool-btn" onclick="goForward()" title="Forward">→</button>
+                <button class="tool-btn" onclick="reloadPage()" title="Reload">↻</button>
+                <button class="tool-btn" onclick="goHome()" title="Home">⌂</button>
+            </div>
+
+            <div class="address-area">
+
+                <span class="security" id="security">🔒</span>
+
+                <input
+                    id="address"
+                    class="address"
+                    autocomplete="off"
+                    spellcheck="false"
+                    placeholder="Search or enter web address"
+                    onkeydown="addressKey(event)"
+                >
+
+                <button
+                    id="star"
+                    class="star"
+                    onclick="toggleBookmark()"
+                    title="Bookmark"
+                >☆</button>
+
+            </div>
+
+            <button
+                class="menu-button"
+                onclick="toggleMenu()"
+                title="Menu"
+            >⋮</button>
+
+        </div>
+
+    </div>
+
+    <!-- PAGE -->
+    <main class="page">
+
+        <div class="home" id="home">
+
+            <div class="logo">N</div>
+
+            <h1>Nova Browser</h1>
+
+            <p>A lightweight browser-style web application.</p>
+
+            <div class="home-search">
+
+                <span>🔎</span>
+
+                <input
+                    id="homeSearch"
+                    placeholder="Search the web"
+                    onkeydown="homeSearchKey(event)"
+                >
+
+                <button onclick="performHomeSearch()">→</button>
+
+            </div>
+
+            <div class="shortcuts">
+
+                <div class="shortcut" onclick="navigate('https://www.google.com')">
+                    <div class="shortcut-icon">🔎</div>
+                    <div class="shortcut-name">Google</div>
+                </div>
+
+                <div class="shortcut" onclick="navigate('https://www.youtube.com')">
+                    <div class="shortcut-icon">▶️</div>
+                    <div class="shortcut-name">YouTube</div>
+                </div>
+
+                <div class="shortcut" onclick="navigate('https://www.wikipedia.org')">
+                    <div class="shortcut-icon">📚</div>
+                    <div class="shortcut-name">Wikipedia</div>
+                </div>
+
+                <div class="shortcut" onclick="navigate('https://github.com')">
+                    <div class="shortcut-icon">💻</div>
+                    <div class="shortcut-name">GitHub</div>
+                </div>
+
+                <div class="shortcut" onclick="openBookmarks()">
+                    <div class="shortcut-icon">⭐</div>
+                    <div class="shortcut-name">Bookmarks</div>
+                </div>
+
+                <div class="shortcut" onclick="openHistory()">
+                    <div class="shortcut-icon">🕘</div>
+                    <div class="shortcut-name">History</div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <iframe
+            id="browserFrame"
+            class="browser-frame"
+            sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+        ></iframe>
+
+        <!-- MENU -->
+        <div class="menu" id="menu">
+
+            <button class="menu-item" onclick="newTab();closeMenu()">
+                <span>➕</span>
+                <span>New tab</span>
+            </button>
+
+            <button class="menu-item" onclick="newPrivateTab();closeMenu()">
+                <span>🕶️</span>
+                <span>New private tab</span>
+            </button>
+
+            <div class="menu-separator"></div>
+
+            <button class="menu-item" onclick="openBookmarks();closeMenu()">
+                <span>⭐</span>
+                <span>Bookmarks</span>
+            </button>
+
+            <button class="menu-item" onclick="openHistory();closeMenu()">
+                <span>🕘</span>
+                <span>History</span>
+            </button>
+
+            <button class="menu-item" onclick="openDownloads();closeMenu()">
+                <span>📥</span>
+                <span>Downloads</span>
+            </button>
+
+            <div class="menu-separator"></div>
+
+            <button class="menu-item" onclick="openSettings();closeMenu()">
+                <span>⚙️</span>
+                <span>Settings</span>
+            </button>
+
+            <button class="menu-item" onclick="openAbout();closeMenu()">
+                <span>ℹ️</span>
+                <span>About Nova Browser</span>
+            </button>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<!-- MODAL -->
+
+<div class="overlay" id="overlay">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <h2 id="modalTitle">Modal</h2>
+
+            <button
+                class="modal-close"
+                onclick="closeModal()"
+            >×</button>
+
+        </div>
+
+        <div class="modal-body" id="modalBody"></div>
+
+    </div>
+
+</div>
+
+
+<!-- STATUS -->
+
+<div class="status" id="status"></div>
+
+
+<script>
+
+/* =========================================================
+   NOVA BROWSER
+   SINGLE FILE BROWSER-STYLE APPLICATION
+========================================================= */
+
+const STORAGE = {
+    settings:"nova_settings",
+    bookmarks:"nova_bookmarks",
+    history:"nova_history"
+};
+
+let tabs = [];
+let activeTab = null;
+
+let settings = JSON.parse(
+    localStorage.getItem(STORAGE.settings) || "null"
+) || {
+    theme:"dark",
+    searchEngine:"https://www.google.com/search?q=",
+    homepage:"nova",
+    privateMode:false
+};
+
+let bookmarks = JSON.parse(
+    localStorage.getItem(STORAGE.bookmarks) || "[]"
+);
+
+let historyItems = JSON.parse(
+    localStorage.getItem(STORAGE.history) || "[]"
+);
+
+
+/* =========================================================
+   START
+========================================================= */
+
+function init(){
+
+    applyTheme();
+
+    newTab();
+
+    document.addEventListener("click",function(e){
+
+        const menu = document.getElementById("menu");
+
+        if(
+            menu.classList.contains("show") &&
+            !menu.contains(e.target) &&
+            !e.target.closest(".menu-button")
+        ){
+            closeMenu();
+        }
+
+    });
+
+}
+
+window.onload = init;
+
+
+/* =========================================================
+   TABS
+========================================================= */
+
+function newTab(){
+
+    const tab = {
+        id:Date.now() + Math.random(),
+        title:"New Tab",
+        url:"",
+        private:false,
+        history:[],
+        historyIndex:-1
+    };
+
+    tabs.push(tab);
+
+    activeTab = tab.id;
+
+    renderTabs();
+
+    showHome();
+
+}
+
+function newPrivateTab(){
+
+    const tab = {
+        id:Date.now() + Math.random(),
+        title:"Private Tab",
+        url:"",
+        private:true,
+        history:[],
+        historyIndex:-1
+    };
+
+    tabs.push(tab);
+
+    activeTab = tab.id;
+
+    renderTabs();
+
+    showHome();
+
+    showStatus("Private tab opened");
+
+}
+
+function closeTab(id){
+
+    const index = tabs.findIndex(t => t.id === id);
+
+    if(index === -1) return;
+
+    tabs.splice(index,1);
+
+    if(tabs.length === 0){
+
+        newTab();
+
+        return;
+
+    }
+
+    if(activeTab === id){
+
+        activeTab =
+            tabs[Math.max(0,index-1)].id;
+
+        loadActiveTab();
+
+    }
+
+    renderTabs();
+
+}
+
+function selectTab(id){
+
+    activeTab = id;
+
+    loadActiveTab();
+
+    renderTabs();
+
+}
+
+function renderTabs(){
+
+    const container =
+        document.getElementById("tabs");
+
+    container.innerHTML = "";
+
+    tabs.forEach(tab => {
+
+        const element =
+            document.createElement("div");
+
+        element.className =
+            "tab " +
+            (tab.id === activeTab ? "active" : "");
+
+        element.onclick = () =>
+            selectTab(tab.id);
+
+        const icon =
+            document.createElement("div");
+
+        icon.className = "tab-icon";
+
+        icon.textContent =
+            tab.private ? "🕶️" : "🌐";
+
+        const title =
+            document.createElement("div");
+
+        title.className = "tab-title";
+
+        title.textContent =
+            tab.title || "New Tab";
+
+        const close =
+            document.createElement("div");
+
+        close.className = "tab-close";
+
+        close.textContent = "×";
+
+        close.onclick = function(e){
+
+            e.stopPropagation();
+
+            closeTab(tab.id);
+
+        };
+
+        element.appendChild(icon);
+        element.appendChild(title);
+        element.appendChild(close);
+
+        container.appendChild(element);
+
+    });
+
+    const plus =
+        document.createElement("button");
+
+    plus.className = "new-tab";
+
+    plus.textContent = "+";
+
+    plus.onclick = newTab;
+
+    container.appendChild(plus);
+
+}
+
+
+/* =========================================================
+   ACTIVE TAB
+========================================================= */
+
+function getActiveTab(){
+
+    return tabs.find(
+        t => t.id === activeTab
+    );
+
+}
+
+function loadActiveTab(){
+
+    const tab = getActiveTab();
+
+    if(!tab) return;
+
+    document.getElementById("address").value =
+        tab.url || "";
+
+    if(tab.url){
+
+        loadURL(tab.url);
+
+    }else{
+
+        showHome();
+
+    }
+
+}
+
+
+/* =========================================================
+   ADDRESS BAR
+========================================================= */
+
+function addressKey(event){
+
+    if(event.key !== "Enter") return;
+
+    const value =
+        document.getElementById("address").value.trim();
+
+    if(!value) return;
+
+    navigate(value);
+
+}
+
+function normalizeURL(value){
+
+    if(
+        value.startsWith("http://") ||
+        value.startsWith("https://")
+    ){
+
+        return value;
+
+    }
+
+    if(
+        value.includes(".") &&
+        !value.includes(" ")
+    ){
+
+        return "https://" + value;
+
+    }
+
+    return settings.searchEngine +
+        encodeURIComponent(value);
+
+}
+
+function navigate(value){
+
+    const url = normalizeURL(value);
+
+    const tab = getActiveTab();
+
+    if(!tab) return;
+
+    tab.url = url;
+
+    tab.title =
+        getDomain(url) || "New Tab";
+
+    addHistory(tab);
+
+    if(tab.historyIndex <
+        tab.history.length - 1){
+
+        tab.history =
+            tab.history.slice(
+                0,
+                tab.historyIndex + 1
+            );
+
+    }
+
+    tab.history.push(url);
+
+    tab.historyIndex =
+        tab.history.length - 1;
+
+    document.getElementById("address").value =
+        url;
+
+    renderTabs();
+
+    loadURL(url);
+
+}
+
+function getDomain(url){
+
+    try{
+
+        return new URL(url).hostname;
+
+    }catch(e){
+
+        return "";
+
+    }
+
+}
+
+
+/* =========================================================
+   LOAD PAGE
+========================================================= */
+
+function loadURL(url){
+
+    const home =
+        document.getElementById("home");
+
+    const frame =
+        document.getElementById("browserFrame");
+
+    home.style.display = "none";
+
+    frame.classList.add("active");
+
+    frame.src = url;
+
+    document.getElementById("security").textContent =
+        url.startsWith("https://") ? "🔒" : "⚠️";
+
+}
+
+function showHome(){
+
+    const home =
+        document.getElementById("home");
+
+    const frame =
+        document.getElementById("browserFrame");
+
+    frame.classList.remove("active");
+
+    frame.src = "about:blank";
+
+    home.style.display = "flex";
+
+    document.getElementById("address").value = "";
+
+    document.getElementById("security").textContent = "🔒";
+
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function goBack(){
+
+    const tab = getActiveTab();
+
+    if(!tab) return;
+
+    if(tab.historyIndex > 0){
+
+        tab.historyIndex--;
+
+        const url =
+            tab.history[tab.historyIndex];
+
+        tab.url = url;
+
+        document.getElementById("address").value =
+            url;
+
+        loadURL(url);
+
+    }
+
+}
+
+function goForward(){
+
+    const tab = getActiveTab();
+
+    if(!tab) return;
+
+    if(
+        tab.historyIndex <
+        tab.history.length - 1
+    ){
+
+        tab.historyIndex++;
+
+        const url =
+            tab.history[tab.historyIndex];
+
+        tab.url = url;
+
+        document.getElementById("address").value =
+            url;
+
+        loadURL(url);
+
+    }
+
+}
+
+function reloadPage(){
+
+    const frame =
+        document.getElementById("browserFrame");
+
+    if(
+        frame.classList.contains("active")
+    ){
+
+        try{
+            frame.contentWindow.location.reload();
+        }catch(e){
+            frame.src = frame.src;
+        }
+
+    }else{
+
+        showHome();
+
+    }
+
+}
+
+function goHome(){
+
+    const tab = getActiveTab();
+
+    if(tab){
+
+        tab.url = "";
+        tab.title = "New Tab";
+
+    }
+
+    showHome();
+
+    renderTabs();
+
+}
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+function homeSearchKey(event){
+
+    if(event.key === "Enter"){
+
+        performHomeSearch();
+
+    }
+
+}
+
+function performHomeSearch(){
+
+    const input =
+        document.getElementById("homeSearch");
+
+    const value =
+        input.value.trim();
+
+    if(!value) return;
+
+    navigate(value);
+
+}
+
+
+/* =========================================================
+   HISTORY
+========================================================= */
+
+function addHistory(tab){
+
+    if(tab.private) return;
+
+    if(!tab.url) return;
+
+    const item = {
+        title:tab.title,
+        url:tab.url,
+        time:new Date().toISOString()
+    };
+
+    historyItems.unshift(item);
+
+    historyItems =
+        historyItems.slice(0,200);
+
+    localStorage.setItem(
+        STORAGE.history,
+        JSON.stringify(historyItems)
+    );
+
+}
+
+function openHistory(){
+
+    const body = document.getElementById("modalBody");
+
+    document.getElementById("modalTitle").textContent =
+        "History";
+
+    if(historyItems.length === 0){
+
+        body.innerHTML =
+            `<p style="color:var(--muted)">
+            No browsing history yet.
+            </p>`;
+
+    }else{
+
+        body.innerHTML = `
+            <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+                <button class="danger" onclick="clearHistory()">
+                    Clear history
+                </button>
+            </div>
+
+            <div class="list">
+
+                ${historyItems.map((item,index)=>`
+
+                    <div class="list-item"
+                         onclick="navigate('${escapeAttr(item.url)}');closeModal()"
+                         style="cursor:pointer">
+
+                        <div class="list-title">
+                            ${escapeHTML(item.title)}
+                        </div>
+
+                        <div class="list-meta">
+                            ${escapeHTML(item.url)}
+                        </div>
+
+                        <div class="list-meta">
+                            ${new Date(item.time).toLocaleString()}
+                        </div>
+
+                    </div>
+
+                `).join("")}
+
+            </div>
+        `;
+
+    }
+
+    openModal();
+
+}
+
+function clearHistory(){
+
+    historyItems = [];
+
+    localStorage.removeItem(
+        STORAGE.history
+    );
+
+    closeModal();
+
+    showStatus("History cleared");
+
+}
+
+
+/* =========================================================
+   BOOKMARKS
+========================================================= */
+
+function toggleBookmark(){
+
+    const tab = getActiveTab();
+
+    if(!tab || !tab.url){
+
+        showStatus("Nothing to bookmark");
+
+        return;
+
+    }
+
+    const existing =
+        bookmarks.findIndex(
+            b => b.url === tab.url
+        );
+
+    if(existing >= 0){
+
+        bookmarks.splice(existing,1);
+
+        showStatus("Bookmark removed");
+
+    }else{
+
+        bookmarks.unshift({
+
+            title:tab.title,
+            url:tab.url
+
+        });
+
+        showStatus("Bookmark added");
+
+    }
+
+    saveBookmarks();
+
+    updateStar();
+
+}
+
+function updateStar(){
+
+    const tab = getActiveTab();
+
+    const star =
+        document.getElementById("star");
+
+    if(
+        tab &&
+        bookmarks.some(b => b.url === tab.url)
+    ){
+
+        star.textContent = "★";
+
+        star.classList.add("active");
+
+    }else{
+
+        star.textContent = "☆";
+
+        star.classList.remove("active");
+
+    }
+
+}
+
+function saveBookmarks(){
+
+    localStorage.setItem(
+        STORAGE.bookmarks,
+        JSON.stringify(bookmarks)
+    );
+
+}
+
+function openBookmarks(){
+
+    const body =
+        document.getElementById("modalBody");
+
+    document.getElementById("modalTitle").textContent =
+        "Bookmarks";
+
+    if(bookmarks.length === 0){
+
+        body.innerHTML = `
+            <p style="color:var(--muted)">
+                No bookmarks yet.
+            </p>
+        `;
+
+    }else{
+
+        body.innerHTML = `
+
+            <div class="list">
+
+                ${bookmarks.map((b,i)=>`
+
+                    <div class="list-item">
+
+                        <div
+                            class="list-title"
+                            style="cursor:pointer"
+                            onclick="navigate('${escapeAttr(b.url)}');closeModal()"
+                        >
+                            ⭐ ${escapeHTML(b.title)}
+                        </div>
+
+                        <div class="list-meta">
+                            ${escapeHTML(b.url)}
+                        </div>
+
+                        <div style="margin-top:8px">
+
+                            <button
+                                class="danger"
+                                onclick="removeBookmark(${i})"
+                            >
+                                Remove
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                `).join("")}
+
+            </div>
+        `;
+
+    }
+
+    openModal();
+
+}
+
+function removeBookmark(index){
+
+    bookmarks.splice(index,1);
+
+    saveBookmarks();
+
+    openBookmarks();
+
+    updateStar();
+
+}
+
+
+/* =========================================================
+   DOWNLOADS
+========================================================= */
+
+function openDownloads(){
+
+    document.getElementById("modalTitle").textContent =
+        "Downloads";
+
+    document.getElementById("modalBody").innerHTML = `
+
+        <div class="list">
+
+            <div class="list-item">
+
+                <div class="list-title">
+                    📥 Downloads
+                </div>
+
+                <div class="list-meta">
+                    Browser downloads would appear here.
+                </div>
+
+            </div>
+
+            <div class="list-item">
+
+                <div class="list-title">
+                    ⚠️ Browser limitation
+                </div>
+
+                <div class="list-meta">
+                    A normal HTML webpage cannot control the
+                    host browser's real download manager.
+                    A packaged browser application can provide
+                    deeper download integration.
+                </div>
+
+            </div>
+
+        </div>
+    `;
+
+    openModal();
+
+}
+
+
+/* =========================================================
+   SETTINGS
+========================================================= */
+
+function openSettings(){
+
+    document.getElementById("modalTitle").textContent =
+        "Settings";
+
+    document.getElementById("modalBody").innerHTML = `
+
+        <div class="setting">
+
+            <div class="setting-title">
+                Appearance
+            </div>
+
+            <div class="setting-desc">
+                Choose Nova Browser's color theme.
+            </div>
+
+            <div class="setting-control">
+
+                <select id="themeSelect"
+                        onchange="changeTheme(this.value)">
+
+                    <option value="dark"
+                        ${settings.theme==="dark"?"selected":""}>
+                        Dark
+                    </option>
+
+                    <option value="light"
+                        ${settings.theme==="light"?"selected":""}>
+                        Light
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <div class="setting">
+
+            <div class="setting-title">
+                Search engine
+            </div>
+
+            <div class="setting-desc">
+                Select the search provider used by the address bar.
+            </div>
+
+            <div class="setting-control">
+
+                <select onchange="changeSearchEngine(this.value)">
+
+                    <option
+                        value="https://www.google.com/search?q="
+                        ${settings.searchEngine.includes("google")?"selected":""}>
+                        Google
+                    </option>
+
+                    <option
+                        value="https://www.bing.com/search?q="
+                        ${settings.searchEngine.includes("bing")?"selected":""}>
+                        Bing
+                    </option>
+
+                    <option
+                        value="https://search.brave.com/search?q="
+                        ${settings.searchEngine.includes("brave")?"selected":""}>
+                        Brave Search
+                    </option>
+
+                    <option
+                        value="https://duckduckgo.com/?q="
+                        ${settings.searchEngine.includes("duckduckgo")?"selected":""}>
+                        DuckDuckGo
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <div class="setting">
+
+            <div class="setting-title">
+                Privacy
+            </div>
+
+            <div class="setting-desc">
+                Clear locally stored browser data.
+            </div>
+
+            <div class="setting-control">
+
+                <button
+                    class="danger"
+                    onclick="clearBrowserData()"
+                >
+                    Clear browser data
+                </button>
+
+            </div>
+
+        </div>
+
+    `;
+
+    openModal();
+
+}
+
+function changeTheme(value){
+
+    settings.theme = value;
+
+    saveSettings();
+
+    applyTheme();
+
+}
+
+function changeSearchEngine(value){
+
+    settings.searchEngine = value;
+
+    saveSettings();
+
+    showStatus("Search engine updated");
+
+}
+
+function saveSettings(){
+
+    localStorage.setItem(
+        STORAGE.settings,
+        JSON.stringify(settings)
+    );
+
+}
+
+function applyTheme(){
+
+    document.body.classList.toggle(
+        "light",
+        settings.theme === "light"
+    );
+
+}
+
+function clearBrowserData(){
+
+    localStorage.removeItem(STORAGE.history);
+    localStorage.removeItem(STORAGE.bookmarks);
+
+    historyItems = [];
+    bookmarks = [];
+
+    updateStar();
+
+    closeModal();
+
+    showStatus("Browser data cleared");
+
+}
+
+
+/* =========================================================
+   ABOUT
+========================================================= */
+
+function openAbout(){
+
+    document.getElementById("modalTitle").textContent =
+        "About Nova Browser";
+
+    document.getElementById("modalBody").innerHTML = `
+
+        <div style="text-align:center">
+
+            <div class="logo"
+                 style="margin:0 auto">
+                N
+            </div>
+
+            <h2 style="margin-top:15px">
+                Nova Browser
+            </h2>
+
+            <p style="color:var(--muted);margin-top:8px">
+                Version 1.0
+            </p>
+
+            <p style="
+                color:var(--muted);
+                margin-top:18px;
+                line-height:1.6;
+            ">
+                A single-file browser-style web application
+                built with HTML, CSS and JavaScript.
+            </p>
+
+            <p style="
+                color:var(--muted);
+                margin-top:12px;
+                line-height:1.6;
+            ">
+                It provides the interface and browser-like
+                experience, while the actual rendering of
+                external websites is handled by the host browser.
+            </p>
+
+        </div>
+
+    `;
+
+    openModal();
+
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+function openModal(){
+
+    document
+        .getElementById("overlay")
+        .classList.add("show");
+
+}
+
+function closeModal(){
+
+    document
+        .getElementById("overlay")
+        .classList.remove("show");
+
+}
+
+
+/* =========================================================
+   MENU
+========================================================= */
+
+function toggleMenu(){
+
+    document
+        .getElementById("menu")
+        .classList.toggle("show");
+
+}
+
+function closeMenu(){
+
+    document
+        .getElementById("menu")
+        .classList.remove("show");
+
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+let statusTimer;
+
+function showStatus(message){
+
+    const element =
+        document.getElementById("status");
+
+    element.textContent = message;
+
+    element.classList.add("show");
+
+    clearTimeout(statusTimer);
+
+    statusTimer =
+        setTimeout(
+            () => element.classList.remove("show"),
+            2500
+        );
+
+}
+
+
+/* =========================================================
+   SECURITY HELPERS
+========================================================= */
+
+function escapeHTML(value){
+
+    return String(value)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+
+}
+
+function escapeAttr(value){
+
+    return String(value)
+        .replaceAll("\\","\\\\")
+        .replaceAll("'","\\'");
+
+}
+
+
+/* =========================================================
+   KEYBOARD SHORTCUTS
+========================================================= */
+
+document.addEventListener("keydown",function(e){
+
+    if(
+        (e.ctrlKey || e.metaKey) &&
+        e.key.toLowerCase() === "l"
+    ){
+
+        e.preventDefault();
+
+        const address =
+            document.getElementById("address");
+
+        address.focus();
+
+        address.select();
+
+    }
+
+    if(
+        (e.ctrlKey || e.metaKey) &&
+        e.key.toLowerCase() === "t"
+    ){
+
+        e.preventDefault();
+
+        newTab();
+
+    }
+
+    if(
+        (e.ctrlKey || e.metaKey) &&
+        e.key.toLowerCase() === "w"
+    ){
+
+        e.preventDefault();
+
+        const tab = getActiveTab();
+
+        if(tab) closeTab(tab.id);
+
+    }
+
+    if(e.key === "Escape"){
+
+        closeModal();
+        closeMenu();
+
+    }
+
+});
+
+
+/* =========================================================
+   IFRAME ERROR / LOAD
+========================================================= */
+
+document
+    .getElementById("browserFrame")
+    .addEventListener("load",function(){
+
+        const tab = getActiveTab();
+
+        if(!tab) return;
+
+        renderTabs();
+
+        updateStar();
+
+    });
+
+
+/* =========================================================
+   MODAL BACKDROP
+========================================================= */
+
+document
+    .getElementById("overlay")
+    .addEventListener("click",function(e){
+
+        if(e.target === this){
+
+            closeModal();
+
+        }
+
+    });
+
+
+</script>
+
+</body>
+</html>
